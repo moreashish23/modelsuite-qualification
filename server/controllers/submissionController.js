@@ -84,7 +84,12 @@ const reviewSubmission = async (req, res) => {
   const { reviewStatus } = req.body;
 
   try {
-    // — any string is accepted and stored
+    if (!['Approved', 'Rejected'].includes(reviewStatus)) {
+      return res.status(400).json({
+        message: 'Invalid review status',
+      });
+    }
+
     const submission = await Submission.findByIdAndUpdate(
       req.params.id,
       { reviewStatus },
@@ -94,14 +99,30 @@ const reviewSubmission = async (req, res) => {
       .populate('talentId', 'name email');
 
     if (!submission) {
-      return res.status(404).json({ message: 'Submission not found' });
+      return res.status(404).json({
+        message: 'Submission not found',
+      });
     }
-    // — task stays 'Submitted' even after the submission is Approved/Rejected
-    // Proper flow: also update Task.status to 'Approved'/'Rejected'
+
+    if (reviewStatus === 'Approved') {
+      await Task.findByIdAndUpdate(
+        submission.taskId._id,
+        { status: 'Completed' }
+      );
+    }
+
+    if (reviewStatus === 'Rejected') {
+      await Task.findByIdAndUpdate(
+        submission.taskId._id,
+        { status: 'Claimed' }
+      );
+    }
 
     res.json(submission);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({
+      message: error.message,
+    });
   }
 };
 
