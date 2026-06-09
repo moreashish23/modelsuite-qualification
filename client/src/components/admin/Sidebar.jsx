@@ -39,6 +39,13 @@ const IconLogout = () => (
   </svg>
 );
 
+/* ── Close icon (mobile only) ── */
+const IconClose = () => (
+  <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4 4l12 12M16 4L4 16"/>
+  </svg>
+);
+
 const navItems = [
   { label: 'Dashboard',   path: '/admin/dashboard',   Icon: IconDashboard   },
   { label: 'Tasks',       path: '/admin/tasks',       Icon: IconTasks       },
@@ -46,68 +53,101 @@ const navItems = [
   { label: 'Talents',     path: '/admin/talents',     Icon: IconTalents     },
 ];
 
-const Sidebar = () => {
+/**
+ * Sidebar — desktop fixed + mobile slide-in drawer.
+ *
+ * Props:
+ *   isOpen   {boolean}  — controlled by parent; whether drawer is open (mobile)
+ *   onClose  {function} — called when backdrop or close button is clicked
+ */
+const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
   const { user, logout } = useAuth();
   const navigate  = useNavigate();
   const location  = useLocation();
 
+  const handleNav = (path) => {
+    navigate(path);
+    onClose(); // close drawer on mobile when a link is tapped
+  };
+
   return (
-    <aside className="fixed inset-y-0 left-0 w-[240px] flex flex-col z-50"
-      style={{ background: '#0D0D0D' }}>
+    <>
+      {/* ── Mobile backdrop ── */}
+      {/* Rendered in the DOM always; opacity/pointer-events toggled via class */}
+      <div
+        className={`sidebar-backdrop ${isOpen ? 'sidebar-backdrop-visible' : ''}`}
+        onClick={onClose}
+        aria-hidden="true"
+      />
 
-      {/* Brand */}
-      <div className="flex items-center justify-center px-5 py-6">
-        <img src="/modelsuite-talents.png" alt="ModelSuite Talents" className="w-40 h-auto object-contain" />
-      </div>
+      {/* ── Sidebar panel ── */}
+      <aside
+        className={`sidebar-panel ${isOpen ? 'sidebar-panel-open' : ''}`}
+        style={{ background: '#0D0D0D' }}
+      >
+        {/* Brand + mobile close button */}
+        <div className="flex items-center justify-between px-5 py-6">
+          <img src="/modelsuite-talents.png" alt="ModelSuite Talents" className="w-36 h-auto object-contain" />
 
-      <div className="sidebar-divider mx-4" />
-
-      {/* Nav */}
-      <nav className="flex flex-col gap-0.5 flex-1 px-3 pt-5">
-        <p className="text-[9.5px] font-semibold uppercase tracking-[0.12em] px-2 mb-2"
-          style={{ color: 'rgba(255,255,255,0.25)', fontFamily: 'Inter, sans-serif' }}>
-          Menu
-        </p>
-
-        {navItems.map(({ label, path, Icon }) => {
-          const isActive = location.pathname === path;
-          return (
-            <button key={path}
-              onClick={() => navigate(path)}
-              className={`nav-item ${isActive ? 'nav-active' : ''}`}>
-              <Icon />
-              <span>{label}</span>
-            </button>
-          );
-        })}
-      </nav>
-
-      {/* Footer */}
-      <div className="px-3 pb-5">
-        <div className="sidebar-divider mb-4" />
-        <div className="flex items-center justify-between gap-2 px-1">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-8 h-8 rounded-full avatar-admin flex items-center justify-center text-[12px] font-bold text-white shrink-0">
-              {user?.name?.[0]?.toUpperCase() ?? 'A'}
-            </div>
-            <div className="min-w-0">
-              <p className="text-[13px] font-semibold truncate max-w-[110px]"
-                style={{ color: '#E5E2E1', fontFamily: 'Inter, sans-serif' }}>
-                {user?.name}
-              </p>
-              <p className="text-[11px]" style={{ color: '#4B5563' }}>Admin</p>
-            </div>
-          </div>
-
+          {/* Close button — only visible on mobile */}
           <button
-            onClick={() => { logout(); navigate('/login'); }}
-            title="Sign out"
-            className="logout-btn">
-            <IconLogout />
+            onClick={onClose}
+            className="sidebar-close-btn lg:hidden"
+            aria-label="Close menu"
+          >
+            <IconClose />
           </button>
         </div>
-      </div>
-    </aside>
+
+        <div className="sidebar-divider mx-4" />
+
+        {/* Nav */}
+        <nav className="flex flex-col gap-0.5 flex-1 px-3 pt-5">
+          <p className="text-[9.5px] font-semibold uppercase tracking-[0.12em] px-2 mb-2"
+            style={{ color: 'rgba(255,255,255,0.25)', fontFamily: 'Inter, sans-serif' }}>
+            Menu
+          </p>
+
+          {navItems.map(({ label, path, Icon }) => {
+            const isActive = location.pathname === path;
+            return (
+              <button key={path}
+                onClick={() => handleNav(path)}
+                className={`nav-item ${isActive ? 'nav-active' : ''}`}>
+                <Icon />
+                <span>{label}</span>
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* Footer */}
+        <div className="px-3 pb-5">
+          <div className="sidebar-divider mb-4" />
+          <div className="flex items-center justify-between gap-2 px-1">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-8 h-8 rounded-full avatar-admin flex items-center justify-center text-[12px] font-bold text-white shrink-0">
+                {user?.name?.[0]?.toUpperCase() ?? 'A'}
+              </div>
+              <div className="min-w-0">
+                <p className="text-[13px] font-semibold truncate max-w-[110px]"
+                  style={{ color: '#E5E2E1', fontFamily: 'Inter, sans-serif' }}>
+                  {user?.name}
+                </p>
+                <p className="text-[11px]" style={{ color: '#4B5563' }}>Admin</p>
+              </div>
+            </div>
+
+            <button
+              onClick={() => { logout(); navigate('/login'); }}
+              title="Sign out"
+              className="logout-btn">
+              <IconLogout />
+            </button>
+          </div>
+        </div>
+      </aside>
+    </>
   );
 };
 
