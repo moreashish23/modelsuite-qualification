@@ -529,8 +529,7 @@ input, select, textarea {
 
 /* ── Mobile top navbar ── */
 .mobile-topbar {
-  /* Hidden on desktop — displayed only inside the mobile media query below.
-     Controlled entirely via CSS to avoid Tailwind v4 utility specificity conflicts. */
+
   display: none;
   align-items: center;
   justify-content: space-between;
@@ -578,7 +577,6 @@ input, select, textarea {
   .sidebar-panel {
     transform: translateX(-100%);
     transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
-    /* Raise above backdrop */
     z-index: 60;
     box-shadow: 4px 0 32px rgba(0,0,0,0.5);
   }
